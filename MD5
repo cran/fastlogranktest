@@ -1,0 +1,13 @@
+f0d62e37a49db325ea073035ed8330f0 *DESCRIPTION
+2c2882217ac5b52ee549daa8fffb51e1 *NAMESPACE
+44337278e3280379e1530d3782453a34 *R/RcppExports.R
+6c47812a1db3553dd30b087752ab9c1c *R/logrank_test.R
+ce000b9f954f6ed38d688bc504f98abf *man/logrank_test.Rd
+bcac4faf7f08e74917c57225ca65f73f *man/multi_logrank_test.Rd
+e3d3cb360fbfdb3c6974e14eb5f09870 *src/Makevars
+8439b6030869e4a7f9ca46f95c2dc273 *src/RcppExports.cpp
+b35ab659cce97ed484906a79ee9f7124 *src/logrank_r.cpp
+bba7abda41f73a9a22cd89295ad40b3c *tests/testthat.R
+c629dcf9a08eb94af76df1035988832c *tests/testthat/test-benchmarks.R
+41ce00a47278c7a3025145360e0804a4 *tests/testthat/test-logrank_example.R
+c0209e746945e08fe32139da6491b724 *tests/testthat/test-multi_logrank_example.R
