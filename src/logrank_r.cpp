@@ -1,7 +1,6 @@
 #include <Rcpp.h>
 // [[Rcpp::depends(BH)]]
 #include <boost/math/distributions.hpp>
-using namespace Rcpp;
 #include <iostream>
 #include <vector>
 #include <string>
