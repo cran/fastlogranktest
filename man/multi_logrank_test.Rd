@@ -4,8 +4,14 @@
 \alias{multi_logrank_test}
 \title{Calculate multiple Log-Rank-Tests very fast}
 \usage{
-multi_logrank_test(groupas, groupbs, groupacensoreds, groupbcensoreds,
-  threadnumber = NULL)
+multi_logrank_test(
+  groupas,
+  groupbs,
+  groupacensoreds,
+  groupbcensoreds,
+  threadnumber = NULL,
+  onlyz = FALSE
+)
 }
 \arguments{
 \item{groupas}{list of vectors of groupa's survival times}
@@ -17,9 +23,11 @@ multi_logrank_test(groupas, groupbs, groupacensoreds, groupbcensoreds,
 \item{groupbcensoreds}{list of vectors of censored information of groupb's survival times}
 
 \item{threadnumber}{(optional) set the number of threads used for this function}
+
+\item{onlyz}{(optional) calculate only z-statistic}
 }
 \value{
-vector of p-values (same order as input)
+vector of chi2 statistic, z-statistic, p-value (same order as input)
 }
 \description{
 Calculate multiple Log-Rank-Tests very fast
@@ -33,6 +41,7 @@ t1s<-list(T1, T1, T1)
 e1s<-list(E1, E1, E1)
 t2s<-list(T2, T2, T2)
 e2s<-list(E2, E2, E2)
-multi_logrank_test(t1s,t2s,e1s,e2s)
-#4.168809e-05 4.168809e-05 4.168809e-05
+multi_logrank_test(t1s, t2s, e1s, e2s)
+#1.679294e+01 -4.097919e+00 4.168809e-05 1.679294e+01 -4.097919e+00 4.168809e-05
+#1.679294e+01 -4.097919e+00 4.168809e-05
 }

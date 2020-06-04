@@ -1,5 +1,6 @@
 #include <Rcpp.h>
 // [[Rcpp::depends(BH)]]
+#include <cmath>
 #include <boost/math/distributions.hpp>
 #include <iostream>
 #include <vector>
@@ -9,11 +10,12 @@
 #include <thread>
 
 
-std::vector<double> pvalues;
+std::vector<std::vector<double>> res;
 std::vector<std::vector<double>> groupas;
 std::vector<std::vector<int>> groupacensoreds;
 std::vector<std::vector<double>> groupbs;
 std::vector<std::vector<int>> groupbcensoreds;
+bool onlyz;
 
 bool compareFunction(std::pair<double, int>& a, std::pair<double, int>& b)
 {
@@ -29,7 +31,7 @@ std::vector<std::pair<double, int>> cpugetpairvector(std::vector<double>& vect1,
 }
 
 // [[Rcpp::export]]
-double logrank_instance(std::vector<double>& groupa, std::vector<double>& groupb, std::vector<int>& groupacensored, std::vector<int>& groupbcensored){
+std::vector<double> logrank_instance(std::vector<double>& groupa, std::vector<double>& groupb, std::vector<int>& groupacensored, std::vector<int>& groupbcensored, bool onlyz){
 
   std::vector<std::pair<double, int>> groupaboth = cpugetpairvector(groupa, groupacensored);
   std::vector<std::pair<double, int>> groupbboth = cpugetpairvector(groupb, groupbcensored);
@@ -116,23 +118,27 @@ double logrank_instance(std::vector<double>& groupa, std::vector<double>& groupb
     nb -= minusnb;
     n = na + nb;
   }
-  long double logrank = ((oa - ea) * (oa - ea)) / var;
-  double pvalue = 1.0;
-  if (logrank >= 0) {
-    pvalue = (1.0 - boost::math::cdf(boost::math::chi_squared(1), logrank));
-    //std::cout << pvalue << std::endl;
+  long double zstat = (oa-ea)/sqrt(var);
+  if (onlyz) { return std::vector<double>(static_cast<double>(zstat)); }
+  else {
+    long double logrank = ((oa - ea) * (oa - ea)) / var;
+    double pvalue = 1.0;
+    if (logrank >= 0) {
+      pvalue = (1.0 - boost::math::cdf(boost::math::chi_squared(1), logrank));
+      //std::cout << pvalue << std::endl;
+    }
+    return std::vector<double>{static_cast<double>(logrank),static_cast<double>(zstat),pvalue};
   }
-  return pvalue;
 }
 
 void startthread(unsigned long long start, unsigned long long end) {
   for (unsigned long long j = start; j < end; ++j) {
-    pvalues[j]=logrank_instance(groupas[j], groupbs[j], groupacensoreds[j], groupbcensoreds[j]);
+    res[j]=logrank_instance(groupas[j], groupbs[j], groupacensoreds[j], groupbcensoreds[j], onlyz);
   }
 }
 
 // [[Rcpp::export]]
-std::vector<double> cpu_parallel_logrank1(std::vector<std::vector<double>>& groupas_, std::vector<std::vector<double>>& groupbs_, std::vector<std::vector<int>>& groupacensoreds_, std::vector<std::vector<int>> &groupbcensoreds_, unsigned threadnumber) {
+std::vector<std::vector<double>> cpu_parallel_logrank1(std::vector<std::vector<double>>& groupas_, std::vector<std::vector<double>>& groupbs_, std::vector<std::vector<int>>& groupacensoreds_, std::vector<std::vector<int>> &groupbcensoreds_, unsigned threadnumber, bool onlyz) {
 
   //std::cout << "Use " << threadnumber << " thread(s)!" << std::endl;
   groupas = groupas_;
@@ -140,7 +146,7 @@ std::vector<double> cpu_parallel_logrank1(std::vector<std::vector<double>>& grou
   groupacensoreds = groupacensoreds_;
   groupbcensoreds = groupbcensoreds_;
   unsigned long long totalsize = groupas.size();
-  pvalues.resize(totalsize);
+  res.resize(totalsize);
   std::vector<std::thread> threads(threadnumber);
   unsigned long long countperthread = (totalsize / threadnumber) + 1;
   unsigned long long countperthreadstart = 0;
@@ -160,10 +166,10 @@ std::vector<double> cpu_parallel_logrank1(std::vector<std::vector<double>>& grou
     threads[j].join();
   }
 
-  return pvalues;
+  return res;
 }
 
 // [[Rcpp::export]]
-std::vector<double> cpu_parallel_logrank(std::vector<std::vector<double>>& groupas, std::vector<std::vector<double>>& groupbs, std::vector<std::vector<int>>& groupacensoreds, std::vector<std::vector<int>>& groupbcensoreds) {
-  return cpu_parallel_logrank1(groupas, groupbs, groupacensoreds, groupbcensoreds, std::thread::hardware_concurrency());
+std::vector<std::vector<double>> cpu_parallel_logrank(std::vector<std::vector<double>>& groupas, std::vector<std::vector<double>>& groupbs, std::vector<std::vector<int>>& groupacensoreds, std::vector<std::vector<int>>& groupbcensoreds, bool onlyz) {
+  return cpu_parallel_logrank1(groupas, groupbs, groupacensoreds, groupbcensoreds, std::thread::hardware_concurrency(), onlyz);
 }
